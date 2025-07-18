@@ -64,27 +64,6 @@ Kibana Dashboard: http://your-ec2-ip:5601
 6.Log Shipping with Filebeat
 Filebeat reads Cowrie’s JSON log file and forwards it to Elasticsearch.
 
-filebeat/filebeat.yml:
-
-yaml
-Copy
-Edit
-filebeat.inputs:
-  - type: log
-    paths:
-      - /usr/share/filebeat/cowrie-logs/cowrie.json
-    json.keys_under_root: true
-    json.add_error_key: true
-
-output.elasticsearch:
-  hosts: ["http://elasticsearch:9200"]
-  index: "cowrie-logs"
-
-setup.kibana:
-  host: "kibana:5601"
-
-logging.level: info
-
 Make sure Cowrie is configured to log in JSON format to logs/cowrie/cowrie.json.
 
 Important Notes
