@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+
+  cowrie:
+    image: cowrie/cowrie
+    ports:
+      - "2222:2222"
+    volumes:
+      - cowrie-data:/cowrie
+    restart: always
+
+  fake_web:
+    build: ./fake_web
+    ports:
+      - "80:80"
+    restart: always
+
+  fake_api:
+    build: ./fake_api
+    ports:
+      - "5000:5000"
+    restart: always
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    restart: always
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.18
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    restart: always
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.18
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - elasticsearch
+    restart: always
+
+volumes:
+  cowrie-data:
