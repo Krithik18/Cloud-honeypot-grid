@@ -1,0 +1,15 @@
+filebeat.inputs:
+  - type: log
+    paths:
+      - /usr/share/filebeat/cowrie-logs/cowrie.json
+    json.keys_under_root: true
+    json.add_error_key: true
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  index: "cowrie-logs"
+
+setup.kibana:
+  host: "kibana:5601"
+
+logging.level: info
