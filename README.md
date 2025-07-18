@@ -25,7 +25,7 @@ This project sets up a Docker-based honeypot grid on AWS using Cowrie (SSH), a f
 > These were fixed based on real deployment errors:
 
 - **Disk Space**: EC2 volume set to **16 GB minimum**
-- **t2.micro too slow**: Use at least **t3.small (2GB RAM)** for smooth operation
+- **t2.micro too slow**: Use at least **t3.large (8GB RAM)** for smooth operation
 - **Kibana stuck**: Wait 3–5 minutes after launching; it needs time to initialize
 - **Cowrie logs not visible**: Ensure volumes and permissions are correctly mounted
 - **Filebeat not logging**: Use container paths `/var/lib/docker/containers` + enable Docker socket
