@@ -1,54 +1,64 @@
 version: '3.8'
 
 services:
-
   cowrie:
-    image: cowrie/cowrie
+    image: cowrie/cowrie:latest
+    container_name: hp-grid-cowrie-1
+    volumes:
+      - ./logs/cowrie:/cowrie/var/log
+      - ./logs/cowrie/tty:/cowrie/cowrie-git/var/lib/cowrie/tty
+      - ./cowrie-config/cowrie.cfg:/cowrie/etc/cowrie.cfg
     ports:
       - "2222:2222"
-    volumes:
-      - cowrie-data:/cowrie
-    restart: always
 
   fake_web:
-    build: ./fake_web
+    build: ./web_honeypot
     ports:
-      - "80:80"
-    restart: always
+      - "8080:80"
+    volumes:
+      - ./logs/web:/app/logs
+    restart: unless-stopped
 
   fake_api:
-    build: ./fake_api
+    build: ./api_honeypot
     ports:
-      - "5000:5000"
-    restart: always
+      - "8081:5000"
+    volumes:
+      - ./logs/api:/app/logs
+    restart: unless-stopped
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
-    restart: always
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.17.18
-    depends_on:
-      - elasticsearch
+    image: docker.elastic.co/kibana/kibana:8.13.4
     ports:
       - "5601:5601"
-    restart: always
-
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:7.17.18
-    volumes:
-      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - elasticsearch
-    restart: always
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.13.4
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./logs/cowrie:/usr/share/filebeat/cowrie-logs:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - elasticsearch
+      - kibana
 
 volumes:
-  cowrie-data:
+  esdata:
